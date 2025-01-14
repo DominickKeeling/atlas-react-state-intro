@@ -1,50 +1,75 @@
+import React, { useEffect, useState } from 'react';
+
 export default function SchoolCatalog() {
+  const [course, setCourse] = useState([]);
+  const [filter, setFilter] = useState("");
+  const [sort, setSort] = useState("");
+  const [sortDirection, setDirection] = useState("asc");
+
+  useEffect(() => {
+    fetch("/api/courses.json")
+      .then(response => response.json())
+      .then(data => setCourse(data));
+  }, []);
+
+  const filteredCourses = course.filter(
+    (item) =>
+      item.courseNumber.toLowerCase().startsWith(filter.toLowerCase()) ||
+      item.courseName.toLowerCase().startsWith(filter.toLowerCase())
+  );
+
+  const sortedCourses = filteredCourses.sort((a, b) => {
+
+
+    if (["courseNumber", "courseName"].includes(sort)) {
+      return (
+        a[sort].localeCompare(b[sort]) * (sortDirection === "desc" ? -1 : 1)
+      );
+    }
+
+    if (["trimester", "semesterCredits", "totalClockHours"].includes(sort)) {
+      return (
+        (parseFloat(a[sort]) - parseFloat(b[sort])) * (sortDirection === "desc" ? -1 : 1)
+      );
+    }
+
+    return 0;
+  });
+
+  const handleSort = (field) => {
+    const sortOrder = sort === field && sortDirection === "asc" ? "desc" : "asc";
+    setSort(field);
+    setDirection(sortOrder);
+  } 
+
   return (
     <div className="school-catalog">
       <h1>School Catalog</h1>
-      <input type="text" placeholder="Search" />
+      <input type="text" placeholder="Search"  onChange={(e) => setFilter(e.target.value)}/>
       <table>
         <thead>
           <tr>
-            <th>Trimester</th>
-            <th>Course Number</th>
-            <th>Courses Name</th>
-            <th>Semester Credits</th>
-            <th>Total Clock Hours</th>
+            <th onClick={() => handleSort("trimester")}>Trimester</th>
+            <th onClick={() => handleSort("courseNumber")}>Course Number</th>
+            <th onClick={() => handleSort("courseName")}>Courses Name</th>
+            <th onClick={() => handleSort("semesterCredits")}>Semester Credits</th>
+            <th onClick={() => handleSort("totalClockHours")}>Total Clock Hours</th>
             <th>Enroll</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>PP1000</td>
-            <td>Beginning Procedural Programming</td>
-            <td>2</td>
-            <td>30</td>
-            <td>
-              <button>Enroll</button>
-            </td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>PP1100</td>
-            <td>Basic Procedural Programming</td>
-            <td>4</td>
-            <td>50</td>
-            <td>
-              <button>Enroll</button>
-            </td>
-          </tr>
-          <tr>
-            <td>1</td>
-            <td>OS1000</td>
-            <td>Fundamentals of Open Source Operating Systems</td>
-            <td>2.5</td>
-            <td>37.5</td>
-            <td>
-              <button>Enroll</button>
-            </td>
-          </tr>
+          {sortedCourses.map((course) => (
+            <tr key={course.courseNumber}>
+              <td>{course.trimester}</td>
+              <td>{course.courseNumber}</td>
+              <td>{course.courseName}</td>
+              <td>{course.semesterCredits}</td>
+              <td>{course.totalClockHours}</td>
+              <td>
+                <button>Enroll</button>
+              </td>
+            </tr>
+            ))}
         </tbody>
       </table>
       <div className="pagination">
