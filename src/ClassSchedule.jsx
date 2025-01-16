@@ -1,4 +1,10 @@
+import React from 'react';
+import { useCourseContext } from './CourseContext';
+
 export default function ClassSchedule() {
+
+  const { courses, dropCourse } = useCourseContext();
+
   return (
     <div className="class-schedule">
       <h1>Class Schedule</h1>
@@ -11,13 +17,17 @@ export default function ClassSchedule() {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>OS1000</td>
-            <td>Fundamentals of Open Source Operating Systems</td>
-            <td>
-              <button>Drop</button>
-            </td>
-          </tr>
+          {courses.map((course) => (
+            <tr key={course.courseNumber}>
+              <td>{course.courseNumber}</td>
+              <td>{course.courseName}</td>
+              <td>
+                <button onClick={() => dropCourse(course.courseNumber)}>
+                  Drop
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

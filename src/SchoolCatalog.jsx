@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useCourseContext } from "./CourseContext.jsx";
 
 export default function SchoolCatalog() {
   const [course, setCourse] = useState([]);
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("");
   const [sortDirection, setDirection] = useState("asc");
+  const [page, setPage] = useState(1);
+  const { enrollCourse } = useCourseContext();
 
   useEffect(() => {
     fetch("/api/courses.json")
@@ -36,11 +39,18 @@ export default function SchoolCatalog() {
     return 0;
   });
 
+  let PAGE_SIZE = 5;
+
+  const currentPage = sortedCourses.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const hasMore = page * PAGE_SIZE < sortedCourses.length;
+  const hasLess = page > 1;
+
   const handleSort = (field) => {
     const sortOrder = sort === field && sortDirection === "asc" ? "desc" : "asc";
     setSort(field);
     setDirection(sortOrder);
-  } 
+  }
 
   return (
     <div className="school-catalog">
@@ -58,7 +68,7 @@ export default function SchoolCatalog() {
           </tr>
         </thead>
         <tbody>
-          {sortedCourses.map((course) => (
+          {currentPage.map((course) => (
             <tr key={course.courseNumber}>
               <td>{course.trimester}</td>
               <td>{course.courseNumber}</td>
@@ -66,15 +76,21 @@ export default function SchoolCatalog() {
               <td>{course.semesterCredits}</td>
               <td>{course.totalClockHours}</td>
               <td>
-                <button>Enroll</button>
+                <button onClick={() => enrollCourse(course)}>
+                  Enroll
+                </button>
               </td>
             </tr>
             ))}
         </tbody>
       </table>
       <div className="pagination">
-        <button>Previous</button>
-        <button>Next</button>
+        <button disabled={!hasLess} onClick={() => setPage(page - 1)}>
+          Previous
+        </button>
+        <button disabled={!hasMore} onClick={() => setPage(page + 1)}>
+          Next
+        </button>
       </div>
     </div>
   );
